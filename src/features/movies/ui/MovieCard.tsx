@@ -15,11 +15,10 @@ export const MovieCard = ({ movie, genres, onClick }: MovieCardProps) => {
   const movieGenres = movie.genre_ids
     .map((id) => genres.find((g) => g.id === id)?.name)
     .filter((name): name is string => name !== undefined)
-    .slice(0, 2) // Show max 2 genres for smaller cards
 
   return (
     <div
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-full"
       onClick={onClick}
     >
       <img
@@ -28,7 +27,7 @@ export const MovieCard = ({ movie, genres, onClick }: MovieCardProps) => {
         className="w-full h-48 object-cover"
         loading="lazy"
       />
-      <div className="p-3">
+      <div className="p-3 flex flex-col flex-1">
         <h3 className="font-bold text-base text-gray-900 mb-1.5 line-clamp-2">{movie.title}</h3>
         {movieGenres.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-1.5">
@@ -43,7 +42,7 @@ export const MovieCard = ({ movie, genres, onClick }: MovieCardProps) => {
           </div>
         )}
         <p className="text-xs text-gray-600 mb-2 line-clamp-2">{movie.overview}</p>
-        <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center justify-between text-xs mt-auto">
           <span className="text-gray-500">
             {new Date(movie.release_date).getFullYear()}
           </span>
