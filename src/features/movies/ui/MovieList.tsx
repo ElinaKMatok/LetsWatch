@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
-import { fetchPopularMovies, fetchGenres } from '../api/movies'
+import { fetchPopularMovies, fetchGenres, searchMovies } from '../api/movies'
 import type { Movie, Genre } from '../model/types'
 import { MovieCard } from './MovieCard'
 import { MovieDrawer } from './MovieDrawer'
 import { FilterPanel } from './FilterPanel'
+import { PaginationPanel } from './PaginationPanel'
+import { MovieCardSkeleton } from './MovieCardSkeleton'
+import { EmptyState } from '../../../shared/ui/empty-state'
 
 export const MovieList = () => {
   const [movies, setMovies] = useState<Movie[]>([])
@@ -21,18 +24,35 @@ export const MovieList = () => {
   })
   const [totalPages, setTotalPages] = useState(1)
 
+  // Load genres on mount
+  useEffect(() => {
+    const loadGenres = async () => {
+      try {
+        const genresData = await fetchGenres()
+        setGenres(genresData.genres)
+      } catch (err) {
+        console.error('Failed to load genres:', err)
+      }
+    }
+    loadGenres()
+  }, [])
+
+  // Load popular movies or search results
   useEffect(() => {
     const loadMovies = async () => {
       try {
         setLoading(true)
         setError(null)
-        const [moviesData, genresData] = await Promise.all([
-          fetchPopularMovies(currentPage),
-          fetchGenres(),
-        ])
+        let moviesData: Awaited<ReturnType<typeof fetchPopularMovies>>
+        
+        if (searchQuery.trim()) {
+          moviesData = await searchMovies(searchQuery.trim(), currentPage)
+        } else {
+          moviesData = await fetchPopularMovies(currentPage)
+        }
+        
         setMovies(moviesData.results)
         setTotalPages(moviesData.total_pages)
-        setGenres(genresData.genres)
         // Scroll to top when page changes
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } catch (err) {
@@ -42,14 +62,37 @@ export const MovieList = () => {
       }
     }
 
-    loadMovies()
-  }, [currentPage])
+    // Debounce search by 1 second
+    const timeoutId = setTimeout(() => {
+      loadMovies()
+    }, searchQuery.trim() ? 1000 : 0)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, currentPage])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-600">Loading movies...</div>
-      </div>
+      <>
+        <FilterPanel
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          yearFilter={yearFilter}
+          onYearChange={setYearFilter}
+          ratingFilter={ratingFilter}
+          onRatingChange={setRatingFilter}
+          availableYears={[]}
+          onClear={() => {
+            setSearchQuery('')
+            setYearFilter('')
+            setRatingFilter('')
+          }}
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {Array.from({ length: 20 }).map((_, index) => (
+            <MovieCardSkeleton key={index} />
+          ))}
+        </div>
+      </>
     )
   }
 
@@ -65,11 +108,6 @@ export const MovieList = () => {
     )
   }
 
-  if (movies.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-600">No movies found</div>
-    )
-  }
 
   const handleMovieClick = (movieId: number) => {
     setSelectedMovieId(movieId)
@@ -81,17 +119,8 @@ export const MovieList = () => {
     setSelectedMovieId(null)
   }
 
-  // Filter movies by search query, year, and rating
+  // Filter movies by year and rating (search is now done via API)
   const filteredMovies = movies.filter((movie) => {
-    // Search filter (name or genre)
-    const query = searchQuery.toLowerCase()
-    const titleMatch = movie.title.toLowerCase().includes(query)
-    const genreMatch = movie.genre_ids.some((genreId) => {
-      const genre = genres.find((g) => g.id === genreId)
-      return genre?.name.toLowerCase().includes(query)
-    })
-    const searchMatch = !searchQuery || titleMatch || genreMatch
-
     // Year filter
     const movieYear = new Date(movie.release_date).getFullYear().toString()
     const yearMatch = !yearFilter || movieYear === yearFilter
@@ -100,7 +129,7 @@ export const MovieList = () => {
     const minRating = ratingFilter ? parseFloat(ratingFilter) : 0
     const ratingMatch = movie.vote_average >= minRating
 
-    return searchMatch && yearMatch && ratingMatch
+    return yearMatch && ratingMatch
   })
 
   // Get unique years from movies for the year filter dropdown
@@ -143,83 +172,24 @@ export const MovieList = () => {
             />
           ))}
         </div>
-      ) : searchQuery || yearFilter || ratingFilter ? (
-        <div className="text-center py-12 text-gray-600">
-          No movies found matching your filters
-        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {movies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              movie={movie}
-              genres={genres}
-              onClick={() => handleMovieClick(movie.id)}
-            />
-          ))}
-        </div>
+        <EmptyState
+          title="No movies found"
+          message={
+            searchQuery || yearFilter || ratingFilter
+              ? 'Try adjusting your filters or search query'
+              : 'No movies available at the moment'
+          }
+        />
       )}
 
       {/* Pagination */}
-      {!searchQuery && !yearFilter && !ratingFilter && totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <button
-            onClick={() => {
-              const newPage = Math.max(1, currentPage - 1)
-              setCurrentPage(newPage)
-              localStorage.setItem('movieListPage', newPage.toString())
-            }}
-            disabled={currentPage === 1}
-            className="px-4 py-2 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Previous
-          </button>
-          
-          {/* Page Numbers */}
-          <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum: number
-              if (totalPages <= 5) {
-                pageNum = i + 1
-              } else if (currentPage <= 3) {
-                pageNum = i + 1
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i
-              } else {
-                pageNum = currentPage - 2 + i
-              }
-              
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => {
-                    setCurrentPage(pageNum)
-                    localStorage.setItem('movieListPage', pageNum.toString())
-                  }}
-                  className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                    currentPage === pageNum
-                      ? 'bg-blue-500 text-white'
-                      : 'border border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              )
-            })}
-          </div>
-
-          <button
-            onClick={() => {
-              const newPage = Math.min(totalPages, currentPage + 1)
-              setCurrentPage(newPage)
-              localStorage.setItem('movieListPage', newPage.toString())
-            }}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Next
-          </button>
-        </div>
+      {!yearFilter && !ratingFilter && (
+        <PaginationPanel
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       <MovieDrawer

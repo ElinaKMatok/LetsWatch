@@ -66,3 +66,19 @@ export const fetchMovieCredits = async (movieId: number): Promise<CreditsRespons
 
   return response.json()
 }
+
+export const searchMovies = async (query: string, page: number = 1): Promise<MoviesResponse> => {
+  if (!API_KEY) {
+    throw new Error('TMDb API key is not configured. Please set VITE_TMDB_API_KEY in your .env file')
+  }
+
+  const response = await fetch(
+    `${BASE_URL}/search/movie?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`
+  )
+
+  if (!response.ok) {
+    throw new Error(`Failed to search movies: ${response.statusText}`)
+  }
+
+  return response.json()
+}
