@@ -21,12 +21,14 @@ export const MovieCard = ({ movie, genres, onClick }: MovieCardProps) => {
       className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-full"
       onClick={onClick}
     >
-      <img
-        src={posterUrl}
-        alt={movie.title}
-        className="w-full h-48 object-cover"
-        loading="lazy"
-      />
+      <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
+        <img
+          src={posterUrl}
+          alt={movie.title}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
       <div className="p-3 flex flex-col flex-1">
         <h3 className="font-bold text-base text-gray-900 mb-1.5 line-clamp-2">{movie.title}</h3>
         {movieGenres.length > 0 && (
