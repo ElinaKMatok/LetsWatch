@@ -42,8 +42,6 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
     }
   }, [movieId, isOpen])
 
-  if (!isOpen) return null
-
   const backdropUrl = movieDetails?.backdrop_path
     ? `https://image.tmdb.org/t/p/w1280${movieDetails.backdrop_path}`
     : null
@@ -54,15 +52,9 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
 
   return (
     <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
-        onClick={onClose}
-      />
-      
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-500 ease-out overflow-y-auto ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -94,7 +86,7 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
                 <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent" />
                 <button
                   onClick={onClose}
-                  className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                  className="absolute top-4 right-4 bg-transparent rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
                   aria-label="Close drawer"
                 >
                   <svg
