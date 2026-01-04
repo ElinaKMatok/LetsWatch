@@ -143,60 +143,65 @@ export const MovieList = () => {
   )
 
   return (
-    <>
-      {/* Filters */}
-      <FilterPanel
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        yearFilter={yearFilter}
-        onYearChange={setYearFilter}
-        ratingFilter={ratingFilter}
-        onRatingChange={setRatingFilter}
-        availableYears={availableYears}
-        onClear={() => {
-          setSearchQuery('')
-          setYearFilter('')
-          setRatingFilter('')
-        }}
-      />
-
-      {/* Movies Grid */}
-      {filteredMovies.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {filteredMovies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              movie={movie}
-              genres={genres}
-              onClick={() => handleMovieClick(movie.id)}
-            />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title="No movies found"
-          message={
-            searchQuery || yearFilter || ratingFilter
-              ? 'Try adjusting your filters or search query'
-              : 'No movies available at the moment'
-          }
+    <div className="h-full flex flex-col">
+      {/* Filters - Sticky */}
+      <div className="sticky top-0 bg-gray-100 z-20 pb-2">
+        <FilterPanel
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          yearFilter={yearFilter}
+          onYearChange={setYearFilter}
+          ratingFilter={ratingFilter}
+          onRatingChange={setRatingFilter}
+          availableYears={availableYears}
+          onClear={() => {
+            setSearchQuery('')
+            setYearFilter('')
+            setRatingFilter('')
+          }}
         />
-      )}
+      </div>
 
-      {/* Pagination */}
-      {!yearFilter && !ratingFilter && (
-        <PaginationPanel
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      )}
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Movies Grid */}
+        {filteredMovies.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {filteredMovies.map((movie) => (
+              <MovieCard
+                key={movie.id}
+                movie={movie}
+                genres={genres}
+                onClick={() => handleMovieClick(movie.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No movies found"
+            message={
+              searchQuery || yearFilter || ratingFilter
+                ? 'Try adjusting your filters or search query'
+                : 'No movies available at the moment'
+            }
+          />
+        )}
+
+        {/* Pagination */}
+        {!yearFilter && !ratingFilter && (
+          <PaginationPanel
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
 
       <MovieDrawer
         movieId={selectedMovieId}
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}
       />
-    </>
+    </div>
   )
 }

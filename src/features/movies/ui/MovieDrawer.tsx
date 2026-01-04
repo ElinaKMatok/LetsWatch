@@ -54,10 +54,33 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
     <>
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-500 ease-out overflow-y-auto ${
+        className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-500 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
+        {/* Fixed Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-50 shadow-md"
+          style={{ padding: '4px', borderRadius: '50%', backgroundColor: 'white', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          aria-label="Close drawer"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        
+        <div className="h-full overflow-y-auto">
         {loading && (
           <div className="flex items-center justify-center h-full">
             <div className="text-gray-600">Loading movie details...</div>
@@ -104,26 +127,6 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent" />
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-                style={{ padding: '4px', borderRadius: '50%', backgroundColor: 'white' }}
-                aria-label="Close drawer"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
             </div>
 
             <div className="p-6">
@@ -369,6 +372,7 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </>
   )
