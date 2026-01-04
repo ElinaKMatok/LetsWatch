@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchPopularMovies, fetchGenres, discoverMovies } from '../api/movies'
+import { fetchPopularMovies, fetchGenres, searchMovies, discoverMovies } from '../api/movies'
 import type { Movie, Genre } from '../model/types'
 import { MovieCard } from './MovieCard'
 import { MovieDrawer } from './MovieDrawer'
@@ -22,6 +22,39 @@ export const MovieList = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
+  // Handle search input change - clear filters when search is used
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    // Clear filters when search input is used
+    if (value.trim()) {
+      setYearFilter('')
+      setRatingFilter('')
+      setGenreFilter('')
+    }
+  }
+
+  // Handle filter changes - clear search when filters are used
+  const handleYearChange = (value: string) => {
+    setYearFilter(value)
+    if (value) {
+      setSearchQuery('')
+    }
+  }
+
+  const handleRatingChange = (value: string) => {
+    setRatingFilter(value)
+    if (value) {
+      setSearchQuery('')
+    }
+  }
+
+  const handleGenreChange = (value: string) => {
+    setGenreFilter(value)
+    if (value) {
+      setSearchQuery('')
+    }
+  }
+
   // Load genres on mount
   useEffect(() => {
     const loadGenres = async () => {
@@ -43,15 +76,18 @@ export const MovieList = () => {
         setError(null)
         let moviesData: Awaited<ReturnType<typeof fetchPopularMovies>>
         
-        const hasFilters = yearFilter || ratingFilter || genreFilter || searchQuery.trim()
+        const hasFilters = yearFilter || ratingFilter || genreFilter
+        const hasSearch = searchQuery.trim()
         
-        if (hasFilters) {
-          // Use discover API for all filtering (including search)
+        if (hasSearch) {
+          // Use search API when search query is active (filters are cleared)
+          moviesData = await searchMovies(searchQuery.trim(), currentPage)
+        } else if (hasFilters) {
+          // Use discover API when filters are active (search is cleared)
           moviesData = await discoverMovies(currentPage, {
             year: yearFilter || undefined,
             minRating: ratingFilter || undefined,
             genreId: genreFilter || undefined,
-            searchQuery: searchQuery.trim() || undefined,
           })
         } else {
           // Use popular movies when no filters or search
@@ -69,12 +105,11 @@ export const MovieList = () => {
       }
     }
 
-    // Debounce search input by 1000ms (1 second)
-    // If search query changes, wait 1 second before loading
-    // For other filters (year, rating, genre) or page changes, load immediately
+    // Debounce search input by 1000ms (1 second) when only search is used
+    // For filters (year, rating, genre) or page changes, load immediately
     const timeoutId = setTimeout(() => {
       loadMovies()
-    }, searchQuery.trim() ? 1000 : 0)
+    }, searchQuery.trim() && !yearFilter && !ratingFilter && !genreFilter ? 1000 : 0)
 
     return () => clearTimeout(timeoutId)
   }, [searchQuery, currentPage, yearFilter, ratingFilter, genreFilter])
@@ -84,17 +119,17 @@ export const MovieList = () => {
       <>
         <FilterPanel
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={handleSearchChange}
+          onClearSearch={() => setSearchQuery('')}
           yearFilter={yearFilter}
-          onYearChange={setYearFilter}
+          onYearChange={handleYearChange}
           ratingFilter={ratingFilter}
-          onRatingChange={setRatingFilter}
+          onRatingChange={handleRatingChange}
           genreFilter={genreFilter}
-          onGenreChange={setGenreFilter}
+          onGenreChange={handleGenreChange}
           availableYears={[]}
           availableGenres={genres}
           onClear={() => {
-            setSearchQuery('')
             setYearFilter('')
             setRatingFilter('')
             setGenreFilter('')
@@ -148,17 +183,17 @@ export const MovieList = () => {
       <div className="sticky top-0 bg-gray-100 z-20 pb-2">
         <FilterPanel
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={handleSearchChange}
+          onClearSearch={() => setSearchQuery('')}
           yearFilter={yearFilter}
-          onYearChange={setYearFilter}
+          onYearChange={handleYearChange}
           ratingFilter={ratingFilter}
-          onRatingChange={setRatingFilter}
+          onRatingChange={handleRatingChange}
           genreFilter={genreFilter}
-          onGenreChange={setGenreFilter}
+          onGenreChange={handleGenreChange}
           availableYears={availableYears}
           availableGenres={genres}
           onClear={() => {
-            setSearchQuery('')
             setYearFilter('')
             setRatingFilter('')
             setGenreFilter('')
@@ -184,7 +219,7 @@ export const MovieList = () => {
           <EmptyState
             title="No movies found"
             message={
-              searchQuery || yearFilter || ratingFilter
+              searchQuery || yearFilter || ratingFilter || genreFilter
                 ? 'Try adjusting your filters or search query'
                 : 'No movies available at the moment'
             }
