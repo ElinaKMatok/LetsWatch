@@ -44,7 +44,7 @@ export const MovieList = () => {
     const hasYearFilter = minYear !== null || maxYear !== null
     const hasRatingFilter = minRating !== 1 || maxRating !== 10
     const hasSearch = searchQuery.trim()
-    const hasOnlySearch = hasSearch && !hasYearFilter && !hasRatingFilter && !genreFilter
+    const hasOnlySearch = hasSearch && !hasYearFilter && !hasRatingFilter && genreFilter.length === 0
     const hasYearOrRating = hasYearFilter || hasRatingFilter
     
     let debounceTime = 0
@@ -112,7 +112,7 @@ export const MovieList = () => {
           <EmptyState
             title="No movies found"
             message={
-              searchQuery || minYear !== null || maxYear !== null || minRating !== 1 || maxRating !== 10 || genreFilter
+              searchQuery || minYear !== null || maxYear !== null || minRating !== 1 || maxRating !== 10 || genreFilter.length > 0
                 ? 'Try adjusting your filters or search query'
                 : 'No movies available at the moment'
             }

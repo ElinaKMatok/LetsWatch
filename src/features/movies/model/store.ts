@@ -13,7 +13,7 @@ interface MoviesState {
   maxYear: number | null
   minRating: number | null
   maxRating: number | null
-  genreFilter: string
+  genreFilter: string[]
   
   // Pagination
   currentPage: number
@@ -32,7 +32,7 @@ interface MoviesState {
   setSearchQuery: (query: string) => void
   setYearRange: (min: number | null, max: number | null) => void
   setRatingRange: (min: number | null, max: number | null) => void
-  setGenreFilter: (genre: string) => void
+  setGenreFilter: (genres: string[]) => void
   setCurrentPage: (page: number) => void
   clearFilters: () => void
   clearSearch: () => void
@@ -53,7 +53,7 @@ export const useMoviesStore = create<MoviesState>((set, get) => ({
   maxYear: null,
   minRating: 1,
   maxRating: 10,
-  genreFilter: '',
+  genreFilter: [],
   currentPage: 1,
   totalPages: 1,
   loading: true,
@@ -67,7 +67,7 @@ export const useMoviesStore = create<MoviesState>((set, get) => ({
     set({ searchQuery: query })
     // Clear filters when search is used
     if (query.trim()) {
-      set({ minYear: null, maxYear: null, minRating: 1, maxRating: 10, genreFilter: '' })
+      set({ minYear: null, maxYear: null, minRating: 1, maxRating: 10, genreFilter: [] })
     }
   },
   
@@ -87,10 +87,10 @@ export const useMoviesStore = create<MoviesState>((set, get) => ({
     }
   },
   
-  setGenreFilter: (genre: string) => {
-    set({ genreFilter: genre })
+  setGenreFilter: (genres: string[]) => {
+    set({ genreFilter: genres })
     // Clear search when filter is used
-    if (genre) {
+    if (genres.length > 0) {
       set({ searchQuery: '' })
     }
   },
@@ -100,7 +100,7 @@ export const useMoviesStore = create<MoviesState>((set, get) => ({
   },
   
   clearFilters: () => {
-    set({ minYear: null, maxYear: null, minRating: 1, maxRating: 10, genreFilter: '' })
+    set({ minYear: null, maxYear: null, minRating: 1, maxRating: 10, genreFilter: [] })
   },
   
   clearSearch: () => {
@@ -148,13 +148,14 @@ export const useMoviesStore = create<MoviesState>((set, get) => ({
         // When no filters, discover API returns popular movies by default
         // Only pass rating filter if it's not the default range (1-10)
         const shouldFilterRating = minRating !== 1 || maxRating !== 10
+        const genreIds = genreFilter.length > 0 ? genreFilter.join(',') : undefined
         
         moviesData = await discoverMovies(currentPage, {
           minYear: minYear || undefined,
           maxYear: maxYear || undefined,
           minRating: shouldFilterRating ? minRating?.toString() : undefined,
           maxRating: shouldFilterRating ? maxRating?.toString() : undefined,
-          genreId: genreFilter || undefined,
+          genreId: genreIds,
         })
       }
       
