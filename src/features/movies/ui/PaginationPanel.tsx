@@ -13,7 +13,6 @@ export const PaginationPanel = ({
 
   const handlePageChange = (page: number) => {
     onPageChange(page)
-    localStorage.setItem('movieListPage', page.toString())
   }
 
   return (

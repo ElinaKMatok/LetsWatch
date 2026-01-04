@@ -82,3 +82,47 @@ export const searchMovies = async (query: string, page: number = 1): Promise<Mov
 
   return response.json()
 }
+
+export const discoverMovies = async (
+  page: number = 1,
+  options?: {
+    year?: string
+    minRating?: string
+    genreId?: string
+    searchQuery?: string
+  }
+): Promise<MoviesResponse> => {
+  if (!API_KEY) {
+    throw new Error('TMDb API key is not configured. Please set VITE_TMDB_API_KEY in your .env file')
+  }
+
+  const params = new URLSearchParams({
+    api_key: API_KEY,
+    language: 'en-US',
+    page: page.toString(),
+  })
+
+  if (options?.year) {
+    params.append('primary_release_year', options.year)
+  }
+
+  if (options?.minRating) {
+    params.append('vote_average.gte', options.minRating)
+  }
+
+  if (options?.genreId) {
+    params.append('with_genres', options.genreId)
+  }
+
+  if (options?.searchQuery) {
+    params.append('with_text_query', options.searchQuery)
+  }
+
+  const response = await fetch(`${BASE_URL}/discover/movie?${params.toString()}`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to discover movies: ${response.statusText}`)
+  }
+
+  return response.json()
+}

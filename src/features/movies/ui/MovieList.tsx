@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchPopularMovies, fetchGenres, searchMovies } from '../api/movies'
+import { fetchPopularMovies, fetchGenres, discoverMovies } from '../api/movies'
 import type { Movie, Genre } from '../model/types'
 import { MovieCard } from './MovieCard'
 import { MovieDrawer } from './MovieDrawer'
@@ -18,10 +18,8 @@ export const MovieList = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [yearFilter, setYearFilter] = useState<string>('')
   const [ratingFilter, setRatingFilter] = useState<string>('')
-  const [currentPage, setCurrentPage] = useState(() => {
-    const savedPage = localStorage.getItem('movieListPage')
-    return savedPage ? parseInt(savedPage, 10) : 1
-  })
+  const [genreFilter, setGenreFilter] = useState<string>('')
+  const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
   // Load genres on mount
@@ -37,7 +35,7 @@ export const MovieList = () => {
     loadGenres()
   }, [])
 
-  // Load popular movies or search results
+  // Load movies based on filters
   useEffect(() => {
     const loadMovies = async () => {
       try {
@@ -45,9 +43,18 @@ export const MovieList = () => {
         setError(null)
         let moviesData: Awaited<ReturnType<typeof fetchPopularMovies>>
         
-        if (searchQuery.trim()) {
-          moviesData = await searchMovies(searchQuery.trim(), currentPage)
+        const hasFilters = yearFilter || ratingFilter || genreFilter || searchQuery.trim()
+        
+        if (hasFilters) {
+          // Use discover API for all filtering (including search)
+          moviesData = await discoverMovies(currentPage, {
+            year: yearFilter || undefined,
+            minRating: ratingFilter || undefined,
+            genreId: genreFilter || undefined,
+            searchQuery: searchQuery.trim() || undefined,
+          })
         } else {
+          // Use popular movies when no filters or search
           moviesData = await fetchPopularMovies(currentPage)
         }
         
@@ -62,13 +69,15 @@ export const MovieList = () => {
       }
     }
 
-    // Debounce search by 1 second
+    // Debounce search input by 1000ms (1 second)
+    // If search query changes, wait 1 second before loading
+    // For other filters (year, rating, genre) or page changes, load immediately
     const timeoutId = setTimeout(() => {
       loadMovies()
     }, searchQuery.trim() ? 1000 : 0)
 
     return () => clearTimeout(timeoutId)
-  }, [searchQuery, currentPage])
+  }, [searchQuery, currentPage, yearFilter, ratingFilter, genreFilter])
 
   if (loading) {
     return (
@@ -80,11 +89,15 @@ export const MovieList = () => {
           onYearChange={setYearFilter}
           ratingFilter={ratingFilter}
           onRatingChange={setRatingFilter}
+          genreFilter={genreFilter}
+          onGenreChange={setGenreFilter}
           availableYears={[]}
+          availableGenres={genres}
           onClear={() => {
             setSearchQuery('')
             setYearFilter('')
             setRatingFilter('')
+            setGenreFilter('')
           }}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -119,27 +132,14 @@ export const MovieList = () => {
     setSelectedMovieId(null)
   }
 
-  // Filter movies by year and rating (search is now done via API)
-  const filteredMovies = movies.filter((movie) => {
-    // Year filter
-    const movieYear = new Date(movie.release_date).getFullYear().toString()
-    const yearMatch = !yearFilter || movieYear === yearFilter
+  // API handles all filtering, no need for local filtering
+  const filteredMovies = movies
 
-    // Rating filter (minimum rating)
-    const minRating = ratingFilter ? parseFloat(ratingFilter) : 0
-    const ratingMatch = movie.vote_average >= minRating
-
-    return yearMatch && ratingMatch
-  })
-
-  // Get unique years from movies for the year filter dropdown
+  // Get all available years (generate range from current year back to 1900)
+  const currentYear = new Date().getFullYear()
   const availableYears = Array.from(
-    new Set(
-      movies
-        .map((movie) => new Date(movie.release_date).getFullYear())
-        .filter((year) => !isNaN(year))
-        .sort((a, b) => b - a)
-    )
+    { length: currentYear - 1899 },
+    (_, i) => currentYear - i
   )
 
   return (
@@ -153,11 +153,15 @@ export const MovieList = () => {
           onYearChange={setYearFilter}
           ratingFilter={ratingFilter}
           onRatingChange={setRatingFilter}
+          genreFilter={genreFilter}
+          onGenreChange={setGenreFilter}
           availableYears={availableYears}
+          availableGenres={genres}
           onClear={() => {
             setSearchQuery('')
             setYearFilter('')
             setRatingFilter('')
+            setGenreFilter('')
           }}
         />
       </div>
@@ -188,13 +192,11 @@ export const MovieList = () => {
         )}
 
         {/* Pagination */}
-        {!yearFilter && !ratingFilter && (
-          <PaginationPanel
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        )}
+        <PaginationPanel
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       <MovieDrawer

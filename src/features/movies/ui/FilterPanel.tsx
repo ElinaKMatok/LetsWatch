@@ -5,7 +5,10 @@ type FilterPanelProps = {
   onYearChange: (value: string) => void
   ratingFilter: string
   onRatingChange: (value: string) => void
+  genreFilter: string
+  onGenreChange: (value: string) => void
   availableYears: number[]
+  availableGenres: Array<{ id: number; name: string }>
   onClear: () => void
 }
 
@@ -16,7 +19,10 @@ export const FilterPanel = ({
   onYearChange,
   ratingFilter,
   onRatingChange,
+  genreFilter,
+  onGenreChange,
   availableYears,
+  availableGenres,
   onClear,
 }: FilterPanelProps) => {
   return (
@@ -60,6 +66,21 @@ export const FilterPanel = ({
         <option value="5">5+</option>
         <option value="4">4+</option>
         <option value="3">3+</option>
+      </select>
+
+      {/* Genre Filter */}
+      <select
+        id="genre-filter"
+        value={genreFilter}
+        onChange={(e) => onGenreChange(e.target.value)}
+        className="px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer"
+      >
+        <option value="">All Genres</option>
+        {availableGenres.map((genre) => (
+          <option key={genre.id} value={genre.id.toString()}>
+            {genre.name}
+          </option>
+        ))}
       </select>
 
       {/* Clear Button */}
