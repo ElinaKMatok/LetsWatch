@@ -1,32 +1,27 @@
-type FilterPanelProps = {
-  searchQuery: string
-  onSearchChange: (value: string) => void
-  onClearSearch: () => void
-  yearFilter: string
-  onYearChange: (value: string) => void
-  ratingFilter: string
-  onRatingChange: (value: string) => void
-  genreFilter: string
-  onGenreChange: (value: string) => void
-  availableYears: number[]
-  availableGenres: Array<{ id: number; name: string }>
-  onClear: () => void
-}
+import { useMoviesStore } from '../model/store'
+import { RangeSlider } from '../../../shared/ui/slider/Slider'
 
-export const FilterPanel = ({
-  searchQuery,
-  onSearchChange,
-  onClearSearch,
-  yearFilter,
-  onYearChange,
-  ratingFilter,
-  onRatingChange,
-  genreFilter,
-  onGenreChange,
-  availableYears,
-  availableGenres,
-  onClear,
-}: FilterPanelProps) => {
+export const FilterPanel = () => {
+  const {
+    searchQuery,
+    setSearchQuery,
+    clearSearch,
+    minYear: selectedMinYear,
+    maxYear: selectedMaxYear,
+    setYearRange,
+    minRating,
+    maxRating,
+    setRatingRange,
+    genreFilter,
+    setGenreFilter,
+    genres,
+    clearFilters,
+  } = useMoviesStore()
+
+  // Get all available years (generate range from current year back to 1900)
+  const currentYear = new Date().getFullYear()
+  const minYear = 1900
+  const maxYear = currentYear
   return (
     <div className="mb-6 space-y-4">
       {/* Section 1: Search by movie title */}
@@ -37,12 +32,12 @@ export const FilterPanel = ({
             type="text"
             placeholder="Search by movie title..."
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
           {searchQuery && (
             <button
-              onClick={onClearSearch}
+              onClick={clearSearch}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
               aria-label="Clear search"
               title="Clear search"
@@ -68,48 +63,93 @@ export const FilterPanel = ({
       {/* Section 2: Help me narrow things down */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">Help me narrow things down</label>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-6">
           {/* Year Filter */}
-          <select
-            id="year-filter"
-            value={yearFilter}
-            onChange={(e) => onYearChange(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer"
-          >
-            <option value="">All Years</option>
-            {availableYears.map((year) => (
-              <option key={year} value={year.toString()}>
-                {year}
-              </option>
-            ))}
-          </select>
+          <RangeSlider
+            label="Year"
+            min={minYear}
+            max={maxYear}
+            value={
+              selectedMinYear !== null && selectedMaxYear !== null
+                ? [selectedMinYear, selectedMaxYear]
+                : selectedMinYear !== null
+                ? [selectedMinYear, maxYear]
+                : selectedMaxYear !== null
+                ? [minYear, selectedMaxYear]
+                : null
+            }
+            onChange={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                // If both are at the edges, clear
+                if (min === minYear && max === maxYear) {
+                  setYearRange(null, null)
+                } else {
+                  setYearRange(min, max)
+                }
+              } else {
+                setYearRange(null, null)
+              }
+            }}
+            range
+            formatValue={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                if (min === minYear && max === maxYear) return 'All'
+                if (min === minYear) return `-${max}`
+                if (max === maxYear) return `${min}+`
+                return `${min} - ${max}`
+              }
+              return 'All'
+            }}
+          />
 
           {/* Rating Filter */}
-          <select
-            id="rating-filter"
-            value={ratingFilter}
-            onChange={(e) => onRatingChange(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer"
-          >
-            <option value="">All Ratings</option>
-            <option value="9">9+</option>
-            <option value="8">8+</option>
-            <option value="7">7+</option>
-            <option value="6">6+</option>
-            <option value="5">5+</option>
-            <option value="4">4+</option>
-            <option value="3">3+</option>
-          </select>
+          <RangeSlider
+            label="Rating"
+            min={1}
+            max={10}
+            value={
+              minRating !== null && maxRating !== null
+                ? [minRating, maxRating]
+                : null
+            }
+            onChange={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                // If both are at the edges (1-10), it's the default, so set to default
+                if (min === 1 && max === 10) {
+                  setRatingRange(1, 10)
+                } else {
+                  setRatingRange(min, max)
+                }
+              } else {
+                setRatingRange(1, 10)
+              }
+            }}
+            range
+            formatValue={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                if (min === 1 && max === 10) return 'All'
+                if (min === 1) return `-${max}`
+                if (max === 10) return `${min}+`
+                return `${min} - ${max}`
+              }
+              return 'All'
+            }}
+            showMaxValue={true}
+          />
 
           {/* Genre Filter */}
           <select
             id="genre-filter"
             value={genreFilter}
-            onChange={(e) => onGenreChange(e.target.value)}
+            onChange={(e) => setGenreFilter(e.target.value)}
             className="px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors cursor-pointer"
           >
             <option value="">All Genres</option>
-            {availableGenres.map((genre) => (
+            {genres.map((genre) => (
               <option key={genre.id} value={genre.id.toString()}>
                 {genre.name}
               </option>
@@ -118,7 +158,7 @@ export const FilterPanel = ({
 
           {/* Clear Button */}
           <button
-            onClick={onClear}
+            onClick={clearFilters}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
             aria-label="Clear all filters"
             title="Clear all filters"

@@ -13,7 +13,8 @@
     "@react-native-community/slider": "^5.1.1",
     "rc-slider": "^11.1.9",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

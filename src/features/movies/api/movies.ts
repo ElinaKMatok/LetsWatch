@@ -86,8 +86,10 @@ export const searchMovies = async (query: string, page: number = 1): Promise<Mov
 export const discoverMovies = async (
   page: number = 1,
   options?: {
-    year?: string
+    minYear?: number
+    maxYear?: number
     minRating?: string
+    maxRating?: string
     genreId?: string
     searchQuery?: string
   }
@@ -102,12 +104,20 @@ export const discoverMovies = async (
     page: page.toString(),
   })
 
-  if (options?.year) {
-    params.append('primary_release_year', options.year)
+  if (options?.minYear) {
+    params.append('primary_release_date.gte', `${options.minYear}-01-01`)
+  }
+
+  if (options?.maxYear) {
+    params.append('primary_release_date.lte', `${options.maxYear}-12-31`)
   }
 
   if (options?.minRating) {
     params.append('vote_average.gte', options.minRating)
+  }
+
+  if (options?.maxRating) {
+    params.append('vote_average.lte', options.maxRating)
   }
 
   if (options?.genreId) {
