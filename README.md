@@ -65,6 +65,9 @@ The application will automatically reload when you make changes to the code.
 - `npm run build` - Build the application for production
 - `npm run preview` - Preview the production build locally
 - `npm run lint` - Run ESLint to check for code issues
+- `npm run test` - Run unit tests
+- `npm run test:ui` - Run tests with UI interface
+- `npm run test:coverage` - Run tests with coverage report
 
 ## Project Structure
 
@@ -143,6 +146,25 @@ The project is configured to deploy automatically via GitHub Actions. To enable 
    - Value: Your TMDb API key
 
 The application will be available at: `https://elinakmatok.github.io/LetsWatch/`
+
+## Testing
+
+The project includes unit tests for components using Vitest and React Testing Library.
+
+Run tests:
+```bash
+npm run test
+```
+
+Run tests with UI:
+```bash
+npm run test:ui
+```
+
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
 
 ## Contributing
 
