@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchMovieDetails, fetchMovieCredits } from '../api/movies'
 import type { MovieDetails, CreditsResponse } from '../model/types'
+import { MovieDrawerSkeleton } from './MovieDrawerSkeleton'
 
 type MovieDrawerProps = {
   movieId: number | null
@@ -50,13 +51,22 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
     ? `https://image.tmdb.org/t/p/w500${movieDetails.poster_path}`
     : null
 
+  if (!isOpen) return null
+
   return (
     <>
+      {/* Overlay - closes drawer when clicked outside */}
+      <div
+        className="fixed inset-0 z-40 transition-opacity duration-300"
+        onClick={onClose}
+      />
+      
       {/* Drawer */}
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-500 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Close Button */}
         <button
@@ -81,11 +91,7 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
         </button>
         
         <div className="h-full overflow-y-auto">
-        {loading && (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-gray-600">Loading movie details...</div>
-          </div>
-        )}
+        {loading && <MovieDrawerSkeleton />}
 
         {error && (
           <div className="p-6">

@@ -1,6 +1,7 @@
 import Select from 'react-select'
 import { useMoviesStore } from '../model/store'
 import { RangeSlider } from '../../../shared/ui/slider/Slider'
+import { ClearButton } from '../../../shared/ui/clear-button'
 
 export const FilterPanel = () => {
   const {
@@ -37,26 +38,11 @@ export const FilterPanel = () => {
             className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
           {searchQuery && (
-            <button
+            <ClearButton
               onClick={clearSearch}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
-              aria-label="Clear search"
+              ariaLabel="Clear search"
               title="Clear search"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
+            />
           )}
         </div>
       </div>
@@ -212,26 +198,11 @@ export const FilterPanel = () => {
 
           {/* Clear Button */}
           <div className="mt-[28px]">
-            <button
+            <ClearButton
               onClick={clearFilters}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
-              aria-label="Clear all filters"
+              ariaLabel="Clear all filters"
               title="Clear all filters"
-            >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-            </button>
+            />
           </div>
         </div>
       </div>
