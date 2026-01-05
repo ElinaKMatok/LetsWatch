@@ -314,7 +314,7 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Production Countries</h2>
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="flex flex-wrap gap-2">
-                        {movieDetails.production_countries.map((country, index) => (
+                        {movieDetails.production_countries.map((country) => (
                           <span
                             key={country.iso_3166_1}
                             className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
