@@ -3,22 +3,6 @@ import type { MoviesResponse, GenresResponse, MovieDetails, CreditsResponse } fr
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY || ''
 const BASE_URL = 'https://api.themoviedb.org/3'
 
-export const fetchPopularMovies = async (page: number = 1): Promise<MoviesResponse> => {
-  if (!API_KEY) {
-    throw new Error('TMDb API key is not configured. Please set VITE_TMDB_API_KEY in your .env file')
-  }
-
-  const response = await fetch(
-    `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=${page}`
-  )
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch movies: ${response.statusText}`)
-  }
-
-  return response.json()
-}
-
 export const fetchGenres = async (): Promise<GenresResponse> => {
   if (!API_KEY) {
     throw new Error('TMDb API key is not configured. Please set VITE_TMDB_API_KEY in your .env file')
