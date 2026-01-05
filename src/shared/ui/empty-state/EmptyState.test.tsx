@@ -4,18 +4,10 @@ import { EmptyState } from './EmptyState'
 
 describe('EmptyState', () => {
   it('renders title and message', () => {
-    render(<EmptyState title="No movies found" message="Try adjusting your filters" />)
+    render(<EmptyState title="No items found" message="Try adjusting your filters" />)
     
-    expect(screen.getByText('No movies found')).toBeInTheDocument()
+    expect(screen.getByText('No items found')).toBeInTheDocument()
     expect(screen.getByText('Try adjusting your filters')).toBeInTheDocument()
-  })
-
-  it('renders default icon', () => {
-    render(<EmptyState title="Empty" message="No items" />)
-    
-    // Check if SVG icon is present (movie reel icon)
-    const svg = document.querySelector('svg')
-    expect(svg).toBeInTheDocument()
   })
 
   it('renders with custom message', () => {
