@@ -2,6 +2,8 @@
 
 A modern movie discovery application built with React, TypeScript, and Vite. Browse, search, and filter movies from The Movie Database (TMDb) API.
 
+🌐 **Live Demo**: [https://elinakmatok.github.io/LetsWatch/](https://elinakmatok.github.io/LetsWatch/)
+
 ## Features
 
 - 🎥 **Movie Discovery**: Browse popular movies with pagination
@@ -111,6 +113,36 @@ The built files will be in the `dist` directory. You can preview the production 
 ```bash
 npm run preview
 ```
+
+## Deployment
+
+This application is automatically deployed to GitHub Pages on every push to the `main` branch.
+
+### Manual Deployment
+
+If you need to deploy manually:
+
+1. Build the project:
+```bash
+npm run build
+```
+
+2. The `dist` folder contains the production-ready files that can be deployed to any static hosting service.
+
+### GitHub Pages Setup
+
+The project is configured to deploy automatically via GitHub Actions. To enable GitHub Pages:
+
+1. Go to your repository settings on GitHub
+2. Navigate to "Pages" in the left sidebar
+3. Under "Source", select "GitHub Actions"
+4. Make sure your `VITE_TMDB_API_KEY` is set as a repository secret:
+   - Go to Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `VITE_TMDB_API_KEY`
+   - Value: Your TMDb API key
+
+The application will be available at: `https://elinakmatok.github.io/LetsWatch/`
 
 ## Contributing
 
