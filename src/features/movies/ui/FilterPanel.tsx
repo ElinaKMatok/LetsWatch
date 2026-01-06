@@ -129,7 +129,7 @@ export const FilterPanel = () => {
           />
 
           {/* Genre Filter */}
-          <div className="mt-[28px]">
+          <div className="mt-[28px] w-[400px] h-[38px]">
             <Select
               isMulti
               options={genres.map((genre) => ({
@@ -156,6 +156,8 @@ export const FilterPanel = () => {
                 control: (base) => ({
                   ...base,
                   minHeight: '38px',
+                  maxHeight: '70px',
+                  overflow: 'scroll',
                   fontSize: '14px',
                   borderColor: '#e5e7eb',
                   '&:hover': {
