@@ -173,6 +173,15 @@ export const MovieDrawer = ({ movieId, isOpen, onClose }: MovieDrawerProps) => {
                         <span className="font-medium">Runtime:</span> {movieDetails.runtime} minutes
                       </div>
                     )}
+                    {credits?.crew && credits.crew.length > 0 && (() => {
+                      const directors = credits.crew.filter((member) => member.job === 'Director')
+                      return directors.length > 0 ? (
+                        <div>
+                          <span className="font-medium">Director:</span>{' '}
+                          {directors.map((director) => director.name).join(', ')}
+                        </div>
+                      ) : null
+                    })()}
                     <div>
                       <span className="font-medium">Release Date:</span>{' '}
                       {new Date(movieDetails.release_date).toLocaleDateString()}

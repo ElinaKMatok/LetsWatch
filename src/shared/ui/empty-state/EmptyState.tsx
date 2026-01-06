@@ -5,8 +5,8 @@ type EmptyStateProps = {
 }
 
 export const EmptyState = ({
-  title = 'No movies found',
-  message = 'Try adjusting your filters or search query',
+  title = 'No itmes found',
+  message = 'Try again later',
   icon,
 }: EmptyStateProps) => {
   const defaultIcon = (
