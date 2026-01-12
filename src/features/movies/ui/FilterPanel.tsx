@@ -1,9 +1,13 @@
+import { useState } from 'react'
 import Select from 'react-select'
 import { useMoviesStore } from '../model/store'
 import { RangeSlider } from '../../../shared/ui/slider/Slider'
 import { ClearButton } from '../../../shared/ui/clear-button'
+import { RadioButtonsGroup } from '../../../shared/ui/radio-button'
 
 export const FilterPanel = () => {
+  const [filterMode, setFilterMode] = useState<'search' | 'filter'>('search')
+  
   const {
     searchQuery,
     setSearchQuery,
@@ -20,114 +24,76 @@ export const FilterPanel = () => {
     clearFilters,
   } = useMoviesStore()
 
+  const handleFilterModeChange = (mode: 'search' | 'filter') => {
+    setFilterMode(mode)
+    // Clear the other mode's data when switching
+    if (mode === 'search') {
+      clearFilters()
+    } else {
+      clearSearch()
+    }
+  }
+
   // Get all available years (generate range from current year back to 1900)
   const currentYear = new Date().getFullYear()
   const minYear = 1900
   const maxYear = currentYear
+
+  const getYearValue = (): [number, number] | null => {
+    if (selectedMinYear !== null && selectedMaxYear !== null) {
+      return [selectedMinYear, selectedMaxYear]
+    }
+    if (selectedMinYear !== null) {
+      return [selectedMinYear, maxYear]
+    }
+    if (selectedMaxYear !== null) {
+      return [minYear, selectedMaxYear]
+    }
+    return null
+  }
+
   return (
     <div className="mb-6 space-y-4">
-      {/* Section 1: Search by movie title */}
+      {/* Radio buttons for filter mode selection */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Search by movie title</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search by movie title..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          />
-          {searchQuery && (
-            <ClearButton
-              onClick={clearSearch}
-              ariaLabel="Clear search"
-              title="Clear search"
-            />
-          )}
-        </div>
+        <RadioButtonsGroup
+          name="filterMode"
+          options={[
+            { value: 'search', label: 'By name' },
+            { value: 'filter', label: 'Help me narrow things down' },
+          ]}
+          value={filterMode}
+          onChange={(value) => handleFilterModeChange(value as 'search' | 'filter')}
+        />
       </div>
 
+      {/* Section 1: Search by movie title */}
+      {filterMode === 'search' && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Search by movie title</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search by movie title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
+            {searchQuery && (
+              <ClearButton
+                onClick={clearSearch}
+                ariaLabel="Clear search"
+                title="Clear search"
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Section 2: Help me narrow things down */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Help me narrow things down</label>
+      {filterMode === 'filter' && (
+        <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-6">
-          {/* Year Filter */}
-          <RangeSlider
-            label="Year"
-            min={minYear}
-            max={maxYear}
-            value={
-              selectedMinYear !== null && selectedMaxYear !== null
-                ? [selectedMinYear, selectedMaxYear]
-                : selectedMinYear !== null
-                ? [selectedMinYear, maxYear]
-                : selectedMaxYear !== null
-                ? [minYear, selectedMaxYear]
-                : null
-            }
-            onChange={(value) => {
-              if (Array.isArray(value)) {
-                const [min, max] = value
-                // If both are at the edges, clear
-                if (min === minYear && max === maxYear) {
-                  setYearRange(null, null)
-                } else {
-                  setYearRange(min, max)
-                }
-              } else {
-                setYearRange(null, null)
-              }
-            }}
-            range
-            formatValue={(value) => {
-              if (Array.isArray(value)) {
-                const [min, max] = value
-                if (min === minYear && max === maxYear) return 'All'
-                if (min === minYear) return `-${max}`
-                if (max === maxYear) return `${min}+`
-                return `${min} - ${max}`
-              }
-              return 'All'
-            }}
-          />
-
-          {/* Rating Filter */}
-          <RangeSlider
-            label="Rating"
-            min={1}
-            max={10}
-            value={
-              minRating !== null && maxRating !== null
-                ? [minRating, maxRating]
-                : null
-            }
-            onChange={(value) => {
-              if (Array.isArray(value)) {
-                const [min, max] = value
-                // If both are at the edges (1-10), it's the default, so set to default
-                if (min === 1 && max === 10) {
-                  setRatingRange(1, 10)
-                } else {
-                  setRatingRange(min, max)
-                }
-              } else {
-                setRatingRange(1, 10)
-              }
-            }}
-            range
-            formatValue={(value) => {
-              if (Array.isArray(value)) {
-                const [min, max] = value
-                if (min === 1 && max === 10) return 'All'
-                if (min === 1) return `-${max}`
-                if (max === 10) return `${min}+`
-                return `${min} - ${max}`
-              }
-              return 'All'
-            }}
-            showMaxValue={true}
-          />
-
           {/* Genre Filter */}
           <div className="mt-[28px] w-[400px] h-[38px]">
             <Select
@@ -197,6 +163,74 @@ export const FilterPanel = () => {
               }}
             />
           </div>
+          {/* Year Filter */}
+          <RangeSlider
+            label="Year"
+            min={minYear}
+            max={maxYear}
+            value={getYearValue()}
+            onChange={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                // If both are at the edges, clear
+                if (min === minYear && max === maxYear) {
+                  setYearRange(null, null)
+                } else {
+                  setYearRange(min, max)
+                }
+              } else {
+                setYearRange(null, null)
+              }
+            }}
+            range
+            formatValue={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                if (min === minYear && max === maxYear) return 'All'
+                if (min === minYear) return `-${max}`
+                if (max === maxYear) return `${min}+`
+                return `${min} - ${max}`
+              }
+              return 'All'
+            }}
+          />
+
+          {/* Rating Filter */}
+          <RangeSlider
+            label="Rating"
+            min={1}
+            max={10}
+            value={
+              minRating !== null && maxRating !== null
+                ? [minRating, maxRating]
+                : null
+            }
+            onChange={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                // If both are at the edges (1-10), it's the default, so set to default
+                if (min === 1 && max === 10) {
+                  setRatingRange(1, 10)
+                } else {
+                  setRatingRange(min, max)
+                }
+              } else {
+                setRatingRange(1, 10)
+              }
+            }}
+            range
+            formatValue={(value) => {
+              if (Array.isArray(value)) {
+                const [min, max] = value
+                if (min === 1 && max === 10) return 'All'
+                if (min === 1) return `-${max}`
+                if (max === 10) return `${min}+`
+                return `${min} - ${max}`
+              }
+              return 'All'
+            }}
+            showMaxValue={true}
+          />
 
           {/* Clear Button */}
           <div className="mt-[28px]">
@@ -207,7 +241,8 @@ export const FilterPanel = () => {
             />
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
